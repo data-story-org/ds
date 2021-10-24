@@ -1,0 +1,4 @@
+#!/bin/bash
+
+CODE_PATH=/path/to/your/code
+YARN_LINK_PATH=/Users/you/.config/yarn/link/@data-story-org
