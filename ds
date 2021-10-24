@@ -1,0 +1,77 @@
+#!/bin/bash
+
+#############################################################
+# COMMAND TO MAKE DATASTORY DEVELOPMENT INSTALLATION EASY
+#############################################################
+
+CODE_PATH="/Users/anders/Code"
+YARN_LINK_PATH="/Users/anders/.config/yarn/link/@data-story-org"
+CURRENT_PWD=`pwd`
+
+#############################################################
+# HELPERS
+#############################################################
+
+remove_repo() {
+	rm -rf $CODE_PATH/$1
+	rm -rf $YARN_LINK_PATH/$1
+
+	echo ✅ Removed $1
+}
+
+install_repo() {
+	INSTALL_PATH=$CODE_PATH/$1
+	git clone git@github.com:data-story-org/$1.git $INSTALL_PATH
+
+	# yarn link does not support explicit path - cd in & out
+	cd $CODE_PATH/$1
+	yarn link
+	cd $CURRENT_PWD
+
+	echo ✅ Cloned $1 into $INSTALL_PATH
+}
+
+wipe() {
+	#sudo "power to remove node_modules" 2> /dev/null
+	remove_repo core
+	remove_repo gui
+}
+
+install_core() {
+	install_repo core
+
+	cd $CODE_PATH/core
+	yarn
+	yarn build
+	cd $CURRENT_PWD
+}
+
+install_gui() {
+	install_repo gui
+
+	cd $CODE_PATH/gui
+	yarn
+	yarn dev
+	cd $CURRENT_PWD
+}
+
+install() {
+	install_core
+	install_gui
+}
+
+help() {
+	echo "Usage: (dscli wipe | dscli install)"
+}
+
+###################################################
+# MAIN ENTRY POINT
+###################################################
+case "$1"
+	in
+	wipe) wipe ;;
+ 	install) install ;;
+ 	*) help ;;
+esac
+
+exit 0
