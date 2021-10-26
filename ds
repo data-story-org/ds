@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #############################################################
 # MAKE A CONFIG FILE IF YOU DONT WANT THE DEFAULTS
