@@ -1,16 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #############################################################
-# COMMAND TO MAKE DATASTORY DEVELOPMENT INSTALLATION EASY
+# MAKE A CONFIG FILE IF YOU DONT WANT THE DEFAULTS
 #############################################################
 
-CODE_PATH="/Users/anders/Code"
-YARN_LINK_PATH="/Users/anders/.config/yarn/link/@data-story-org"
-CURRENT_PWD=`pwd`
+if test -f .config
+then
+	source .config
+else
+  CODE_PATH=$HOME/Code
+	YARN_LINK_PATH=$HOME/.config/yarn/link/@data-story-org
+fi
 
 #############################################################
 # HELPERS
 #############################################################
+CURRENT_PWD=`pwd`
 
 remove_repo() {
 	rm -rf $CODE_PATH/$1
@@ -23,7 +28,6 @@ install_repo() {
 	INSTALL_PATH=$CODE_PATH/$1
 	git clone git@github.com:data-story-org/$1.git $INSTALL_PATH
 
-	# yarn link does not support explicit path - cd in & out
 	cd $CODE_PATH/$1
 	yarn link
 	cd $CURRENT_PWD
@@ -32,7 +36,6 @@ install_repo() {
 }
 
 wipe() {
-	#sudo "power to remove node_modules" 2> /dev/null
 	remove_repo core
 	remove_repo gui
 }
@@ -41,6 +44,7 @@ install_core() {
 	install_repo core
 
 	cd $CODE_PATH/core
+	yarn link
 	yarn
 	yarn build
 	cd $CURRENT_PWD
@@ -50,6 +54,8 @@ install_gui() {
 	install_repo gui
 
 	cd $CODE_PATH/gui
+	yarn link
+	yarn link @data-story-org/core	
 	yarn
 	yarn dev
 	cd $CURRENT_PWD
@@ -60,8 +66,38 @@ install() {
 	install_gui
 }
 
+echo_core_status() {
+	cd $CODE_PATH/core
+	GIT_STATUS=$(git status 2>&1)
+	
+	LINKED=$(find -L $(find node_modules -type l) -type d -prune)
+
+	echo "######################" CORE "######################"
+	echo $GIT_STATUS
+	echo $LINKED
+
+	cd $CURRENT_PWD	
+}
+
+echo_gui_status() {
+	cd $CODE_PATH/gui
+	GIT_STATUS=$(git status 2>&1)	
+	LINKED=$(find -L $(find node_modules -type l -name core) -type d -prune)
+
+	echo "######################" GUI "######################"
+	echo $GIT_STATUS
+	echo Linked dependencies: $LINKED
+
+	cd $CURRENT_PWD	
+}
+
+status() {
+	echo_core_status
+	echo_gui_status
+}
+
 help() {
-	echo "Usage: (dscli wipe | dscli install)"
+	echo "Usage: (ds wipe | ds install)"
 }
 
 ###################################################
@@ -69,9 +105,11 @@ help() {
 ###################################################
 case "$1"
 	in
-	wipe) wipe ;;
- 	install) install ;;
+	status|s) status ;;
+	install|i) install ;;
+	wipe|w) wipe ;;
  	*) help ;;
 esac
 
+cd $CURRENT_PWD
 exit 0
